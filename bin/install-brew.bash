@@ -7,6 +7,9 @@
 # and with an "apt" based general package manager such as in Debian / Ubuntu
 # Always revise https://brew.sh for changes.
 #
+# Download and run with
+# curl -sS https://raw.githubusercontent.com/sastorsl/scripts/main/bin/install-brew.bash | bash
+#
 
 echo "Find the system package manager"
 
@@ -39,8 +42,8 @@ then
     sudo ${PKGMGR:?} install -y build-essential
 elif [ "${PKGTYPE}" = "yum" ]
 then
-    sudo ${PKGMGR} -y update
-    sudo ${PKGMGR:?} groupinstall 'Development Tools'
+    sudo ${PKGMGR} update -y
+    sudo ${PKGMGR:?} groupinstall -y 'Development Tools'
 fi
 }
 
