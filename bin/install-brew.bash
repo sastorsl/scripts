@@ -111,7 +111,7 @@ echo "### $HOME/.openshift_domain  # DOMAIN Part of the hostname (finNNN.com)"
 echo ""
 echo "### Type the following to get new config right away"
 echo "source $HOME/.bashrc"
-echo "### Type `k8sprofile` to get a nice prompt for your kubernetes / openshift clusters."
+echo "### Type the following to get a nice prompt for your kubernetes / openshift clusters."
 echo "k8sprofile"
 
 # Add to current shell so you get going
