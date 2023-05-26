@@ -1,0 +1,42 @@
+" Set defaults
+set autoindent
+set expandtab
+set softtabstop=4
+set shiftwidth=4
+"set softtabstop=2
+"set shiftwidth=2
+
+" Default color scheme
+colo elflord
+
+" Ensure apache syntax in known configuration directories
+autocmd BufRead,BufNewFile /opt/IBM/HTTPServer/conf/*.conf set syntax=apache
+autocmd BufRead,BufNewFile /etc/httpd/*/*.conf set syntax=apache
+
+" Ensure syntax for known file types
+autocmd BufRead,BufNewFile *.sls set syntax=yaml
+
+" Set 2 spaces for various Filetypes
+autocmd BufRead,BufNewFile *.yml,*.yaml setlocal tabstop=2 shiftwidth=2 softtabstop=2 expandtab foldmethod=indent foldnestmax=10 foldlevel=2 nofoldenable
+autocmd BufRead,BufNewFile *.json setlocal tabstop=2 shiftwidth=2 softtabstop=2 expandtab
+
+" Allow pr-directory .vimrc files
+set exrc
+" ...and disallow autocmd, shell and write
+set secure
+
+execute pathogen#infect()
+
+set statusline+=%#warningmsg#
+set statusline+=%{SyntasticStatuslineFlag()}
+set statusline+=%*
+
+let g:syntastic_always_populate_loc_list = 1
+let g:syntastic_auto_loc_list = 1
+let g:syntastic_check_on_open = 1
+let g:syntastic_check_on_wq = 0
+
+augroup black_on_save
+  autocmd!
+  autocmd BufWritePre *.py Black
+augroup end

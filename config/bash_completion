@@ -1,0 +1,44 @@
+_ssh() 
+{
+    local cur prev opts
+    COMPREPLY=()
+    cur="${COMP_WORDS[COMP_CWORD]}"
+    prev="${COMP_WORDS[COMP_CWORD-1]}"
+    opts=$(cat ~/.ssh/{config,.d/*,ssh_hosts} 2>/dev/null |   awk 'NF==1 { print }
+      /^Host / {
+        sub(/^Host /,"")
+        split($0,s)
+        for (i in s) {
+          if (s[i] !~ /\*/) { print s[i] }
+        }
+      }')
+
+    COMPREPLY=( $(compgen -W "$opts" -- ${cur}) )
+    return 0
+}
+complete -F _ssh ssh
+
+_cos()
+{
+    local cur prev opts
+    COMPREPLY=()
+    cur="${COMP_WORDS[COMP_CWORD]}"
+    prev="${COMP_WORDS[COMP_CWORD-1]}"
+    #opts=$(cos | awk '
+    #    /Usage:/ {
+    #        gsub(/Usage: cos |[\{\}]/,"")
+    #        split($0,s,"|")
+    #        for (i in s) print s[i] }')
+    opts="start stop restart restart_ssh stop_ssh update_ssh_hosts"
+
+    if [[ ${cur} == -* ]] ; then
+        COMPREPLY=( $(compgen -W "${opts}" -- ${cur}) )
+        return 0
+    fi
+}
+complete -F _cos cos
+
+for FILE in $HOME/.bash_completion.d/*.bash
+do
+  source $FILE
+done
