@@ -105,7 +105,7 @@ logok "Configuring bash completion setup."
 curl -sS https://raw.githubusercontent.com/sastorsl/scripts/main/bin/bash-completion-d.bash | bash
 
 logdo "Adding or updating bash_completions for brew"
-curl -s https://raw.githubusercontent.com/sastorsl/scripts/main/config/bash_completion_brew > ${HOME}/.bash_completion.d/brew.bash
+curl -s https://raw.githubusercontent.com/sastorsl/scripts/main/config/bash_completion.d/brew.bash > ${HOME}/.bash_completion.d/brew.bash
 
 logok "Setting up brew shell environment for the installation phase."
 eval "$(/home/linuxbrew/.linuxbrew/bin/brew shellenv)"
