@@ -1,11 +1,12 @@
 #!/bin/bash
 # 26.05.2023, Stein Arne Storslett
 #
-# Download and install "brew" from "brew.sh"
+# Download and install "brew" from "brew.sh", and install relevant kubernetes tooling.
+# Always revise https://brew.sh for changes to the installation procedure.
 #
 # This script is meant to be run with bash and for a bash shell environment
-# and with an "apt" based general package manager such as in Debian / Ubuntu
-# Always revise https://brew.sh for changes.
+# and with either an "apt" based general package manager such as in Debian / Ubuntu
+# or "yum" / "dnf" based as in Fedora and RedHat Linux.
 #
 # Download and run with
 # curl -sS https://raw.githubusercontent.com/sastorsl/scripts/main/bin/install-brew.bash | bash
