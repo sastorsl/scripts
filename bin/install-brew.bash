@@ -143,8 +143,15 @@ logok "
 ### READ THE FOLLOWING LINES CAREFULLY!
 ###
 ### Get OpenShift aliases for oc-<env> by adding the following files"
-logdo "# echo your.email@hostname.com > $HOME/.user_email    # Your email address or username used in OpenShift clusters"
-logdo "# echo YOURDOMAINNAME.COM > $HOME/.openshift_domain   # DOMAIN Part of the hostname (finNNN.com)"
+[ -f $HOME/.user_email ] && /bin/mv -f ${HOME}/.user_email ${HOME}/.openshift_user
+if [ ! -f ${HOME}/.openshift_user ]
+then
+    logdo "# echo your.email@hostname.com > $HOME/.openshift_user    # Your email address or username used in OpenShift clusters"
+fi
+if [ ! -f ${HOME}/.openshift_domain ]
+then
+    logdo "# echo YOURDOMAINNAME.COM > $HOME/.openshift_domain   # DOMAIN Part of the hostname (finNNN.com)"
+fi
 
 logok "
 ### Type the following to get new config right away"
