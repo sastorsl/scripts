@@ -31,6 +31,16 @@ alias kx='kubectx'
 alias klogs='kubectl logs --timestamps=true'
 alias cert-manager='kubectl cert-manager'
 
+function kresources () {
+  # Get resource requests and limits for all containers in all pods in a namespace
+  # Usage: kresources [<project_name>]
+  # Props to steffenlongva/zsh-stuff
+  local project_name=$1
+  test -n "${project_name}" && local namespace="--namespace=${project_name}" || local namespace=""
+  which oc >/dev/null && local cmd=oc || local cmd=kubectl
+  ${cmd} get pods $namespace -o custom-columns="STATE:.status.phase,NAME:.metadata.name,CPU_REQ:.spec.containers[*].resources.requests.cpu,CPU_LIMIT:.spec.containers[*].resources.limits.cpu,MEM_REQ:.spec.containers[*].resources.requests.memory,MEM_LIMIT:.spec.containers[*].resources.limits.memory"
+}
+
 if [ -f $HOME/.openshift_domain ]
 then
     if [ -f $HOME/.openshift_user ]
