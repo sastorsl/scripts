@@ -332,7 +332,7 @@ fi
 #
 runbash "cd ${DESTDIR} && ${CURL} -s -o - https://raw.githubusercontent.com/sastorsl/scripts/main/config/bashrc_k8s.template | sed -e s%XXX_COMPLETION_DIRECTORY_XXX%${COMPLETIONS}% -e s%XXX_DESTINATION_DIRECTORY_XXX%${DESTDIR}% > ${K8S_PROFILE} && chmod -v ${FILE_READ_MODE} ${K8S_PROFILE}"
 runbash "find ${COMPLETIONS} -type f -exec chmod -v ${FILE_READ_MODE} {} \;"
-runbash "if ! grep -q 'HOME/.bash_completion.d' ${HOME}/.bash_completion ; then echo 'for FILE in \$HOME/.bash_completion.d/*.bash; do   source \$FILE; done'"
-runbash "if ! grep -q ${COMPLETIONS} ${HOME}/.bash_completion ; then echo 'for FILE in $COMPLETIONS/*.bash; do   source \$FILE; done'"
+runbash "if ! grep -q 'HOME/.bash_completion.d' ${HOME}/.bash_completion ; then echo 'for FILE in \$HOME/.bash_completion.d/*.bash; do   source \$FILE; done' ; fi"
+runbash "if ! grep -q ${COMPLETIONS} ${HOME}/.bash_completion ; then echo 'for FILE in $COMPLETIONS/*.bash; do   source \$FILE; done' ; fi"
 
 echo "Completed."
