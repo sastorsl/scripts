@@ -312,7 +312,7 @@ then
     done
 fi
 
-if [ -n "$OC_URL" ]
+if [ -n "$OC_URL" ]
 then
     #
     # Download and install the latest OpenShift "oc" command from the local cluster
