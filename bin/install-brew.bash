@@ -58,8 +58,13 @@ ${PKGMGR:?} install -y curl file git
 # NB! Review inststructions from the script
 /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
 
-echo "Add brew to your \$PATH, and other environment variables, on boot"
-echo 'eval "$(/home/linuxbrew/.linuxbrew/bin/brew shellenv)"' >> ~/.bashrc
+if ! grep -qE "^[^#]*eval .*/home/linuxbrew/.linuxbrew/bin/brew shellenv" $HOME/.bashrc
+then
+    echo "Add brew to your \$PATH, and other environment variables, on boot"
+    echo 'eval "$(/home/linuxbrew/.linuxbrew/bin/brew shellenv)"' >> ~/.bashrc
+else
+    echo "Brew config is OK - already added to your $HOME/.bashrc"
+fi
 
 echo "Add or update bash_completions for brew"
 curl -s https://raw.githubusercontent.com/sastorsl/scripts/main/config/bash_completion_brew > ${HOME}/.bash_completion_brew
