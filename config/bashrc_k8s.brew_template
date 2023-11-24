@@ -2,17 +2,16 @@
 # kubernetes / k8s prompt
 #
 if [ -f /home/linuxbrew/.linuxbrew/opt/kube-ps1/share/kube-ps1.sh ]
-then          
+then
     source /home/linuxbrew/.linuxbrew/opt/kube-ps1/share/kube-ps1.sh
-    # Append "kube_ps1" to the end of the system generated PS1
+    # Add "kube_ps1" to the system generated PS1
     case "$PS1" in
         *kube_ps1*) : ;;
         *)  export oPS1=$PS1
             export PS1='$(kube_ps1)'$PS1
-            #export PS1=$(echo ${PS1} | sed 's/[\$\#] *$/\[$(kube_ps1)\$ /')
-            ;; 
+            ;;
     esac
-fi    
+fi
 
 #
 # https://krew.sigs.k8s.io/
@@ -23,7 +22,7 @@ case "$PATH" in
 esac
 
 #
-# Short handle for kubectl.
+# Short handle for kubectl, etc
 # NB! Remeber to add "k" to ~/.bash_completion.d/kubectl*
 #
 alias k='kubectl'
