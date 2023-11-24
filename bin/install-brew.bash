@@ -61,10 +61,12 @@ sudo ${PKGMGR:?} install -y curl file git
 echo "Add brew to your \$PATH, and other environment variables, on boot"
 echo 'eval "$(/home/linuxbrew/.linuxbrew/bin/brew shellenv)"' >> ~/.bashrc
 
-if ! grep -q HOMEBREW_PREFIX $HOME/.bash_completion
+echo "Add or update bash_completions for brew"
+curl -s https://raw.githubusercontent.com/sastorsl/scripts/main/config/bash_completion_brew > ${HOME}/.bash_completion_brew
+if ! grep -q bash_completion_brew $HOME/.bash_completion
 then
     echo "Add bash completion to your startup shell."
-    echo '[[ -r "${HOMEBREW_PREFIX}/etc/profile.d/bash_completion.sh" ]] && source "${HOMEBREW_PREFIX}/etc/profile.d/bash_completion.sh"' >> ${HOME}/.bash_completion
+    echo 'source ${HOME}/.bash_completion_brew' >> ${HOME}/.bash_completion
 else
     echo "brew bash completion is already added to your startup shell."
 fi
@@ -82,11 +84,33 @@ brew install \
     helm \
     hub \
     jq \
+    krew \
+    kube-ps1 \
     kubectx \
     kubernetes-cli \
     kubeseal \
     stern \
     yq
+
+echo "Configuring OpenShift aliases for oc-<env>"
+echo -e "Type your company email: \c"
+read EMAIL
+echo "Type DOMAIN name (host.com) for the OpenShift clusters"
+echo -e "Type DOMAIN name: \c"
+read DOMAIN
+
+echo ${EMAIL} > ${HOME}/.user_email
+echo "Wrote \"${EMAIL}\" to ${HOME}/.user_email"
+echo ${DOMAIN} > ${HOME}/.openshift_domain
+echo "Wrote \"${DOMAIN}\" to ${HOME}/.openshift_domain"
+
+echo "Add or update ${HOME}/.bashrc_k8s"
+curl -s https://raw.githubusercontent.com/sastorsl/scripts/main/config/bashrc_k8s.brew_template > ${HOME}/.bashrc_k8s
+
+if ! grep -q k8sprofile ${HOME}/.bashrc
+then
+    echo "alias k8sprofile='source ~/.bashrc_k8s'" >> ${HOME}/.bashrc
+fi
 
 # Add to current shell so you get going
 echo "Run the following command right now to get started."
