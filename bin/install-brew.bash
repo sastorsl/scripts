@@ -92,18 +92,6 @@ brew install \
     stern \
     yq
 
-echo "Configuring OpenShift aliases for oc-<env>"
-echo -e "Type your company email: \c"
-read EMAIL
-echo "Type DOMAIN name (host.com) for the OpenShift clusters"
-echo -e "Type DOMAIN name: \c"
-read DOMAIN
-
-echo ${EMAIL} > ${HOME}/.user_email
-echo "Wrote \"${EMAIL}\" to ${HOME}/.user_email"
-echo ${DOMAIN} > ${HOME}/.openshift_domain
-echo "Wrote \"${DOMAIN}\" to ${HOME}/.openshift_domain"
-
 echo "Add or update ${HOME}/.bashrc_k8s"
 curl -s https://raw.githubusercontent.com/sastorsl/scripts/main/config/bashrc_k8s.brew_template > ${HOME}/.bashrc_k8s
 
@@ -112,6 +100,21 @@ then
     echo "alias k8sprofile='source ~/.bashrc_k8s'" >> ${HOME}/.bashrc
 fi
 
+echo "###"
+echo "### READ THE FOLLOWING LINES CAREFULLY!"
+echo "###"
+
+echo "### Get OpenShift aliases for oc-<env> by adding the following files"
+echo "### $HOME/.user_email        # Your email address (or user) used in OpenShift clusters"
+echo "### $HOME/.openshift_domain  # DOMAIN Part of the hostname (finNNN.com)"
+
+echo ""
+echo "### Type the following to get new config right away"
+echo "source $HOME/.bashrc"
+echo "### Type `k8sprofile` to get a nice prompt for your kubernetes / openshift clusters."
+echo "k8sprofile"
+
 # Add to current shell so you get going
-echo "Run the following command right now to get started."
+echo ""
+echo "### Run the following command right now to get started with brew."
 echo 'eval "$(/home/linuxbrew/.linuxbrew/bin/brew shellenv)"'
