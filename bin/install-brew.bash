@@ -12,7 +12,38 @@
 # curl -sS https://raw.githubusercontent.com/sastorsl/scripts/main/bin/install-brew.bash | bash
 #
 
-echo "Find the system package manager"
+#
+# This script is intended for bash
+#
+if [ -z "${BASH_VERSINFO}" ]
+then
+    echo "This script is intended for bash only."
+    exit 1
+fi
+
+RED="31"
+GREEN="32"
+YELLOW="33"
+BLUE="34"
+GREENBOLD="\e[1;${GREEN}m"
+REDITALIC="\e[3;${RED}m"
+BLUENORMAL="\e[0;${BLUE}m"
+YELLOWBOLD="\e[1;${YELLOW}m"
+ENDCOLOR="\e[0m"
+
+logdo () {
+    echo -e "${YELLOWBOLD}$@${ENDCOLOR}"
+}
+
+logerr () {
+    echo -e "${REDITALIC}$@${ENDCOLOR}"
+}
+
+logok () {
+    echo -e "${GREENBOLD}$@${ENDCOLOR}"
+}
+
+logok "Discovering the system package manager"
 
 if which apt >/dev/null 2>&1
 then
@@ -31,7 +62,7 @@ then
     PKGTYPE="yum"
     PKGMGR="sudo yum"
 else
-    echo "Unknown package manager. PR's welcome."
+    logerr "Unknown package manager. PR's welcome."
     cat /etc/lsb-release /etc/redhat-release 2>/dev/null
     exit 99
 fi
@@ -48,11 +79,11 @@ then
 fi
 }
 
-echo "Updating system packages."
+logdo "Updating system packages."
 get_setup
 
 # "curl" and "git" are required by brew
-echo "Ensure curl and git is available."
+logdo "Ensuring curl and git is available."
 ${PKGMGR:?} install -y curl file git
 
 # Install brew - periodically check with https://brew.sh to see if the command has been changed
@@ -61,28 +92,28 @@ ${PKGMGR:?} install -y curl file git
 
 if ! grep -qE "^[^#]*eval .*/home/linuxbrew/.linuxbrew/bin/brew shellenv" $HOME/.bashrc
 then
-    echo "Add brew to your \$PATH, and other environment variables, on boot"
+    logdo "Adding brew to your \$PATH, and other environment variables, on boot"
     echo 'eval "$(/home/linuxbrew/.linuxbrew/bin/brew shellenv)"' >> ~/.bashrc
 else
-    echo "Brew config is OK - already added to your $HOME/.bashrc"
+    logok "Brew config is OK - already added to your $HOME/.bashrc"
 fi
 
-echo "Add or update bash_completions for brew"
-curl -s https://raw.githubusercontent.com/sastorsl/scripts/main/config/bash_completion_brew > ${HOME}/.bash_completion_brew
-if ! grep -q bash_completion_brew $HOME/.bash_completion
-then
-    echo "Add bash completion to your startup shell."
-    echo 'source ${HOME}/.bash_completion_brew' >> ${HOME}/.bash_completion
-else
-    echo "brew bash completion is already added to your startup shell."
-fi
+#
+# Update bash completions
+#
+logok "Configuring bash completion setup."
+curl -sS https://raw.githubusercontent.com/sastorsl/scripts/main/bin/bash-completion-d.bash | bash
 
+logdo "Adding or updating bash_completions for brew"
+curl -s https://raw.githubusercontent.com/sastorsl/scripts/main/config/bash_completion_brew > ${HOME}/.bash_completion.d/brew.bash
+
+logok "Setting up brew shell environment for the installation phase."
 eval "$(/home/linuxbrew/.linuxbrew/bin/brew shellenv)"
 
-echo "Turn off brew analytics."
+logdo "Turn off brew analytics."
 brew analytics off
 
-echo "Install tools."
+logdo "Installing tools."
 brew install \
     argocd \
     bash-completion@2 \
@@ -99,7 +130,7 @@ brew install \
     stern \
     yq
 
-echo "Add or update ${HOME}/.bashrc_k8s"
+logdo "Add or update ${HOME}/.bashrc_k8s"
 curl -s https://raw.githubusercontent.com/sastorsl/scripts/main/config/bashrc_k8s.brew_template > ${HOME}/.bashrc_k8s
 
 if ! grep -q k8sprofile ${HOME}/.bashrc
@@ -107,21 +138,21 @@ then
     echo "alias k8sprofile='source ~/.bashrc_k8s'" >> ${HOME}/.bashrc
 fi
 
-echo "###"
-echo "### READ THE FOLLOWING LINES CAREFULLY!"
-echo "###"
+logok "
+###
+### READ THE FOLLOWING LINES CAREFULLY!
+###
+### Get OpenShift aliases for oc-<env> by adding the following files"
+logdo "# echo your.email@hostname.com > $HOME/.user_email    # Your email address or username used in OpenShift clusters"
+logdo "# echo YOURDOMAINNAME.COM > $HOME/.openshift_domain   # DOMAIN Part of the hostname (finNNN.com)"
 
-echo "### Get OpenShift aliases for oc-<env> by adding the following files"
-echo "### $HOME/.user_email        # Your email address (or user) used in OpenShift clusters"
-echo "### $HOME/.openshift_domain  # DOMAIN Part of the hostname (finNNN.com)"
-
-echo ""
-echo "### Type the following to get new config right away"
-echo "source $HOME/.bashrc"
-echo "### Type the following to get a nice prompt for your kubernetes / openshift clusters."
-echo "k8sprofile"
+logok "
+### Type the following to get new config right away"
+logdo "source $HOME/.bashrc"
+logok "### Type the following to get a nice prompt for your kubernetes / openshift clusters."
+logdo "k8sprofile"
 
 # Add to current shell so you get going
-echo ""
-echo "### Run the following command right now to get started with brew."
-echo 'eval "$(/home/linuxbrew/.linuxbrew/bin/brew shellenv)"'
+logok "
+### Run the following command right now to get started with brew."
+logdo 'eval "$(/home/linuxbrew/.linuxbrew/bin/brew shellenv)"'
