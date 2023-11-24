@@ -4,12 +4,11 @@
 if [ -f ~/git/github.com/clones/kube-ps1/kube-ps1.sh ]
 then
     source ~/git/github.com/clones/kube-ps1/kube-ps1.sh 
-    #export PS1='[\u@\h \W $(kube_ps1)]\$ '
-    # Append "kube_ps1" to the end of the system generated PS1
+    # Add "kube_ps1" to the system generated PS1
     case "$PS1" in
         *kube_ps1*) : ;;
         *)  export oPS1=$PS1
-            export PS1=$(echo ${PS1} | sed 's/[\$\#] *$/\[$(kube_ps1)\$ /')
+            export PS1='$(kube_ps1)'$PS1
             ;;
     esac
 fi
@@ -43,7 +42,7 @@ then
             function oc-$i () {
               oc \$@ --context=default/api-${i}-$(cat $HOME/.openshift_domain | sed 's/\./-/g'):6443/$(cat $HOME/.user_email)
             }
-        EOF
+EOF
             if [[ $(type -t compopt) = "builtin" ]]; then
                 complete -o default -F __start_oc oc-${i}
             else
