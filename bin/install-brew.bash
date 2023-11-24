@@ -89,6 +89,7 @@ brew install \
     kubectx \
     kubernetes-cli \
     kubeseal \
+    openshift-cli \
     stern \
     yq
 
