@@ -16,19 +16,19 @@ echo "Find the system package manager"
 if which apt >/dev/null 2>&1
 then
     PKGTYPE="apt"
-    PKGMGR="apt"
+    PKGMGR="sudo apt"
 elif which apt-get >/dev/null 2>&1
 then
     PKGTYPE="apt"
-    PKGMGR="apt-get"
+    PKGMGR="sudo apt-get"
 elif which dnf >/dev/null 2>&1
 then
     PKGTYPE="yum"
-    PKGMGR="dnf"
+    PKGMGR="sudo dnf"
 elif which yum >/dev/null 2>&1
 then
     PKGTYPE="yum"
-    PKGMGR="yum"
+    PKGMGR="sudo yum"
 else
     echo "Unknown package manager. PR's welcome."
     cat /etc/lsb-release /etc/redhat-release 2>/dev/null
@@ -38,12 +38,12 @@ fi
 get_setup () {
 if [ "${PKGTYPE}" = "apt" ]
 then
-    sudo ${PKGMGR} update && ${PKGMGR} upgrade -y
-    sudo ${PKGMGR:?} install -y build-essential
+    ${PKGMGR} update && ${PKGMGR} upgrade -y
+    ${PKGMGR:?} install -y build-essential
 elif [ "${PKGTYPE}" = "yum" ]
 then
-    sudo ${PKGMGR} update -y
-    sudo ${PKGMGR:?} groupinstall -y 'Development Tools'
+    ${PKGMGR} update -y
+    ${PKGMGR:?} groupinstall -y 'Development Tools'
 fi
 }
 
@@ -52,7 +52,7 @@ get_setup
 
 # "curl" and "git" are required by brew
 echo "Ensure curl and git is available."
-sudo ${PKGMGR:?} install -y curl file git
+${PKGMGR:?} install -y curl file git
 
 # Install brew - periodically check with https://brew.sh to see if the command has been changed
 # NB! Review inststructions from the script
