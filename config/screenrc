@@ -1,0 +1,7 @@
+termcap xterm* 'is=\E[r\E[m\E[2J\E[H\E[?7h\E[?1;4;6l'
+terminfo xterm* 'is=\E[r\E[m\E[2J\E[H\E[?7h\E[?1;4;6l'
+termcapinfo xterm* 'hs:ts=\E]0;:fs=\007:ds=\E]0;\007'
+defhstatus "screen ^E (^Et) | $USER@^EH"
+hardstatus off
+term xterm-256color
+caption always "%{+ rk}%H%{+ wk}=%{+ ck}[%L=%-w%45>%{+b ck}%n %t%{-}%+w]%-0<"
