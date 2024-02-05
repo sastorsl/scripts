@@ -15,20 +15,22 @@ autocmd BufRead,BufNewFile /etc/httpd/*/*.conf set syntax=apache
 
 " Ensure syntax for known file types
 autocmd BufRead,BufNewFile *.sls set syntax=yaml
+autocmd BufRead,BufNewFile Jenkinsfile,Jenkinsfile-* set syntax=groovy
 
 " Set 2 spaces for various Filetypes
 autocmd BufRead,BufNewFile *.yml,*.yaml setlocal tabstop=2 shiftwidth=2 softtabstop=2 expandtab foldmethod=indent foldnestmax=10 foldlevel=2 nofoldenable
 autocmd BufRead,BufNewFile *.json setlocal tabstop=2 shiftwidth=2 softtabstop=2 expandtab
+autocmd BufRead,BufNewFile *.groovy setlocal tabstop=4 shiftwidth=4 softtabstop=4 expandtab
 
 " Allow pr-directory .vimrc files
 set exrc
 " ...and disallow autocmd, shell and write
 set secure
 
-execute pathogen#infect()
+"execute pathogen#infect()
 
 set statusline+=%#warningmsg#
-set statusline+=%{SyntasticStatuslineFlag()}
+"set statusline+=%{SyntasticStatuslineFlag()}
 set statusline+=%*
 
 let g:syntastic_always_populate_loc_list = 1
