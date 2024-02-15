@@ -1,0 +1,17 @@
+# syntax=bash
+# Set a home for groovy
+export GROOVY_HOME=/opt/homebrew/opt/groovy/libexec
+
+# Map python to python3
+alias python=python3
+alias pip=pip3
+
+# Add path
+export PATH=$HOME/.local/bin:$PATH
+
+# Options for command history
+if which setopt >/dev/null 2>&1 && test -n "$ZSH"
+then
+  setopt nosharehistory   # Really don't want to share history between windows / sessions in tmux, etc.
+  setopt incappendhistory # write to the history file immediately, not when the shell exits
+fi

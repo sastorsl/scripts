@@ -1,0 +1,56 @@
+#
+# Loop over config files and include them
+#
+
+# Set _DEBUGOUTPUT=1 to get more debug output, i.e. to see which commands takes a long time
+_DEBUGOUTPUT=0
+
+setdate () {
+    date "+%F-%T"
+}
+
+do_output () {
+    if [ ${_DEBUGOUTPUT} = 1 ]
+    then
+        echo "${@}" >&2
+    fi
+}
+
+do_source () {
+    do_output "$(setdate) Start sourcing $1"
+    source $1
+    do_output "$(setdate) Completed sourcing $1"
+}
+
+#
+# NB! Sourced scripts must check if they are run in a zsh or bash environment
+# and exit / ignore gracefully
+#
+SOURCES="
+$HOME/bin/include-completion.zsh
+$HOME/bin/include-bash-completion-d.bash
+$HOME/bin/include-vi-edit-mode.rc
+$HOME/bin/include-aliases.rc
+$HOME/bin/include-extras.rc
+"
+# $HOME/bin/include-k8s.rc - source med `k8sprofile` i aktivt shell
+
+for SOURCE in $(echo ${SOURCES})  # Proof for both zsh and bash
+do
+    do_source ${SOURCE}
+done
+
+# Custom options
+set -o vi
+
+# Set the default editor 'vi'
+if which lvim >/dev/null 2>&1
+then
+    alias vi=lvim
+elif which nvim >/dev/null 2>&1
+then
+    alias vi=nvim
+elif which vim >/dev/null 2>&1
+then
+    alias vi=vim
+fi
