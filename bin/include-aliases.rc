@@ -1,0 +1,78 @@
+#
+# Include aliases for zsh, bash, etc
+#
+
+#
+# git aliases
+#
+alias gitlogall="git log --graph --abbrev-commit --decorate --date=local --format=format:'%C(bold blue)%h%C(reset) - %C(bold green)(%ad)%C(reset) %C(white)%s%C(reset) %C(dim white)- %an%C(reset)%C(bold yellow)%d%C(reset)' --all --name-status"
+alias gitlog="git log --graph --abbrev-commit --decorate --date=local --format=format:'%C(bold blue)%h%C(reset) - %C(bold green)(%ad)%C(reset) %C(white)%s%C(reset) %C(dim white)- %an%C(reset)%C(bold yellow)%d%C(reset)' --name-status"
+alias gitformatpatch='mkdir -p ~/git/patch ; XXX_PATCH=~/git/patch/patch-$(date +%Y%m%d%H%M%S)-$(basename $(git rev-parse --show-toplevel))-$(git rev-parse --abbrev-ref HEAD | tr / -).patch ; cd $(git rev-parse --show-toplevel 2>/dev/null) ; git format-patch master --stdout > $XXX_PATCH ; cd - ; echo Patchfile created: $XXX_PATCH'
+alias gitbranchjiratask="git rev-parse --abbrev-ref HEAD | grep -E -o '[A-Z]+-[0-9]+'"
+
+#
+# Alias all GIT repos
+#
+#
+# Setup function to loop the git directory and create aliases.
+#
+function gitaliases () {
+    local PREFIX=$HOME/git/
+    local NR=1
+    local GITREPO=""
+    # unset previous git aliases
+    local ALIASES=$(alias | awk 'BEGIN { FS="=" } /^(alias )?gitrepo/ { sub(/^alias /,"") ; print $1 }')
+    [ -n "${ALIASES}" ] && unalias $(echo ${ALIASES})
+
+    # Find git repos and set alias
+    while read GITREPO
+    do
+        local GITPATH=${GITREPO%/.git}
+        local ALIASFULLNAME=$(echo ${GITPATH} | sed -e "s#^${PREFIX}##" -e 's#/#-#g' -e 's/^/gitrepo-/' -e 's/--*/-/g').git
+        alias ${ALIASFULLNAME}="cd ${GITPATH}"
+    done <<<"$(find ${PREFIX} -type d -name .git | LANG=C sort)"
+}
+# Setup aliases
+gitaliases
+
+if which git-gh-clone >/dev/null 2>&1
+then
+    function gh-clone () {
+        local r=$(git gh-clone $1)
+        test -n "$r" && cd $r
+    }
+fi
+
+#
+# Get a kubernetes / k8s shell profile
+#
+alias k8sprofile='source ~/bin/include-k8s.rc'
+
+#
+# Get your regular profile
+#
+alias bashprofile='source ~/.bashrc'
+alias zshprofile='source ~/.zshrc'
+
+#
+# Use to get syntax highligthing with the help of "vim"
+# Usage: <cmd> | vaml
+#
+function vaml() {
+  vim -R -c 'set syntax=yaml' -;
+}
+
+#
+# Use to get syntax highligthing with the help of "yq"
+# Requires the "yq" package, i.e. "sudo snap install yq"
+# Usage: <cmd> | yqp
+#
+alias yqp='yq e -PC | less -r'
+
+#
+# Requires the colordiff package
+#
+if which colordiff >/dev/null 2>&1
+then
+  alias diff='colordiff'
+fi
