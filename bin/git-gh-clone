@@ -1,0 +1,62 @@
+#!/bin/sh
+# 18.12.2023, sastorsl, create a github base root directory and clone the repo
+# Only an <org>/<repo> parameter format is allowed.
+
+usage () {
+  err "usage: git gh-clone <org>/<repo>"
+  exit 0
+}
+
+err () {
+  echo "$@" >&2
+}
+
+if ! which gh >/dev/null 2>&1
+then
+  err "This git plugin requires the 'gh' binary. Please install 'gh'. Aborting..."
+  exit 1
+fi
+
+BASE=~/git/github.com
+
+[ $# -eq 0 ] && usage
+
+INPUT=$1
+
+case "${INPUT}" in
+  /) usage ;;
+  *.*) usage ;;
+  */*/*) usage ;;
+  *:*) usage ;;
+esac
+
+REPODIR=${BASE:?}/${INPUT:?}
+REPOBASE=${BASE:?}/${INPUT%/*}
+
+if [ -d ${REPODIR:?}/.git ]
+then
+  cd ${REPODIR:?}
+else
+  if [ ! -d ${REPOBASE:?} ]
+  then
+    RET=$(mkdir -pv ${REPOBASE:?}) ; EC=$?
+    if [ $EC -eq 0 ]
+    then
+      err "Created directory: ${RET}"
+    else
+      err "ERROR EC=$EC creating directory ${REPOBASE:?}"
+      exit $EC
+    fi
+  fi
+
+  cd ${REPOBASE:?} || exit $?
+  gh repo clone ${INPUT:?} ; EC=$?
+
+  if [ $EC -ne 0 ]
+  then
+    RET=$(rmdir -p ${REPODIR:?} 2>/dev/null)
+    err "Removed ${RET}"
+  fi
+fi
+
+echo ${REPODIR:?}
