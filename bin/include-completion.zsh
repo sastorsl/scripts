@@ -3,6 +3,13 @@
 #
 if ( type autoload && type compinit ) >/dev/null 2>&1
 then
+
+    if type terraform &>/dev/null
+    then
+      autoload -U +X bashcompinit && bashcompinit
+      complete -o nospace -C /opt/homebrew/bin/terraform terraform
+    fi
+
     if type brew &>/dev/null
     then
       FPATH="$(brew --prefix)/share/zsh/site-functions:${FPATH}"
