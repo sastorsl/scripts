@@ -52,7 +52,7 @@ fi
 brew-install-cask rancher
 brew-install docker docker-compose
 
-CERTNAME="SKEROOTCA"
+CERTNAME="ROOTCA"
 CERTPATH="${HOME}/.docker/certs.d"
 CERTFILE="${CERTPATH}/${CERTNAME}.crt"
 
