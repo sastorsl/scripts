@@ -1,0 +1,87 @@
+#!/bin/bash
+# 29.02.2024, sastorsl, create a gitlab base root directory and clone the repo
+# <org>/<repo> parameter format is allowed.
+# Usage:
+#   git gl-clone <org>/<repo>   # use host from "glab config get host"
+#   git gl-clone https://gitlab-url.foo/<org>/<repo>
+
+usage () {
+  err "usage: git gl-clone [<org>/<repo>|https://<hostname>/<org>/<repo>"
+  exit 0
+}
+
+err () {
+  echo "$@" >&2
+}
+
+parseurl () {
+  local url=$1
+  local without_proto="${url#*:\/\/}"
+  local without_auth="${without_proto##*@}"
+  [[ $without_auth =~ ^([^:\/]+)(:[[:digit:]]+\/|:|\/)?~?(.*) ]]
+  local PROJECT_HOST="${BASH_REMATCH[1]}"
+  local PROJECT_PATH="${BASH_REMATCH[3]}"
+
+  echo ${PROJECT_HOST} ${PROJECT_PATH}
+}
+
+if ! which glab >/dev/null 2>&1
+then
+  err "This git plugin requires the 'glab' binary. Please install 'glab'. Aborting..."
+  exit 1
+fi
+
+GITHOST=$(glab config get host)
+BASE=~/git/${GITHOST:?}
+
+[ $# -eq 0 ] && usage
+
+INPUT=$1
+
+case "${INPUT}" in
+  /) usage ;;
+  http://*) do_parse=1 ;;
+  https://*) do_parse=1 ;;
+  ssh://*) do_parse=1 ;;
+  *:*) usage ;;
+esac
+
+if [ "$do_parse" = 1 ]
+then
+  RET=$(parseurl $1)
+  read GITHOST REPOPATH <<< "$(parseurl ${INPUT})"
+  REPODIR=${BASE:?}/${REPOPATH:?}
+  PREFIX="GITLAB_HOST=${GITHOST}"
+else
+  REPODIR=${BASE:?}/${INPUT:?}
+  REPOPATH="$INPUT"
+fi
+
+if [ -d ${REPODIR:?}/.git ]
+then
+  cd ${REPODIR:?}
+else
+  if [ ! -d ${BASE:?} ]
+  then
+    RET=$(mkdir -pv ${BASE:?}) ; EC=$?
+    if [ $EC -eq 0 ]
+    then
+      err "Created directory: ${RET}"
+    else
+      err "ERROR EC=$EC creating directory ${BASE:?}"
+      exit $EC
+    fi
+  fi
+
+  cd ${BASE:?} || exit $?
+  # Clone the repo and preserve the repo path as a directory structure locally
+  GITLAB_HOST=${GITHOST} glab repo clone --preserve-namespace --archived=false --paginate ${REPOPATH:?} ; EC=$?
+  if [ $EC -ne 0 ]
+  then
+    err "Failure EC=${EC} cloning repository."
+  fi
+
+  cd ${REPODIR:?} || err "Failed to enter Repodir ${REPODIR:?}"
+fi
+
+echo ${REPODIR:?}
