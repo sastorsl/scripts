@@ -1,0 +1,12 @@
+# Ensure that "vim" is used as the editor
+export VISUAL=vim
+export EDITOR=vim
+
+#
+# zsh specifics
+#
+if ( type autoload && type zle && type bindkey ) >/dev/null 2>&1
+then
+    autoload edit-command-line; zle -N edit-command-line
+    bindkey -M vicmd v edit-command-line
+fi
