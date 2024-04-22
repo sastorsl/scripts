@@ -1,0 +1,23 @@
+#
+# az prompt / Azure CLI command line prompt
+#
+if type az &>/dev/null
+then
+    # Add "azure_prompt_info" to the system generated PS1
+    if [ -n "$ZSH" ]
+    then
+      case "$PROMPT" in
+          *azure_prompt_info*) : ;;
+          *)  export oPROMPT=$PROMPT
+              export PROMPT='$(azure_prompt_info)'$PROMPT
+              ;;
+      esac
+    else
+      case "$PS1" in
+          *azure_prompt_info*) : ;;
+          *)  export oPS1=$PS1
+              export PS1='$(azure_prompt_info)'$PS1
+              ;;
+      esac
+    fi
+fi
