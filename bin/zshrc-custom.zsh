@@ -1,9 +1,6 @@
-# Add zsh completions from brew
-source ~/bin/completion-brew.zsh
-source ~/bin/zshrc-vi-edit-mode.zsh
-source ~/bin/zshrc-k8s.zsh
-source ~/bin/zshrc-aliases.zsh
+#!/bin/zsh
+# 21.11.2023, sastorsl, custom script
+# Called from ~/.oh-my-zsh/custom/zshrc-custom.zsh symlink to here
 
-# Custom options
-set -o vi
-which nvim >/dev/null 2>&1 && alias vi=nvim
+# Call custom generic script
+source ~/bin/include-custom.rc
