@@ -1,0 +1,224 @@
+#
+# kubernetes / k8s prompt
+#
+if [ -f ~/.kube-ps1/kube-ps1.sh ]
+then
+    source ~/.kube-ps1/kube-ps1.sh
+    export KUBE_PS1_BINARY="oc"
+    # Ensure kube-ps1 works with bash-git-prompt
+    function prompt_callback () {
+        echo -n " $(kube_ps1)"
+    }
+    # Add "kube_ps1" to the system generated PS1
+    if [ -n "$ZSH" ]
+    then
+      case "$PROMPT" in
+          *kube_ps1*) : ;;
+          *)  export oPROMPT=$PROMPT
+              export PROMPT='$(kube_ps1)'$PROMPT
+              ;;
+      esac
+    else
+      case "$PS1" in
+          *kube_ps1*) : ;;
+          *)  export oPS1=$PS1
+              export PS1='$(kube_ps1)'$PS1
+              ;;
+      esac
+    fi
+fi
+
+#
+# https://krew.sigs.k8s.io/
+#
+case "$PATH" in
+    *.krew/bin*) : ;;
+    *) export PATH=$PATH:~/.krew/bin ;;
+esac
+
+#
+# Short handle for kubectl, etc
+#
+if ! type kubectl &> /dev/null
+then
+    if type oc &> /dev/null
+    then
+        function kubectl () {
+            oc "$@"
+        }
+    fi
+fi
+alias k='kubectl'
+alias ke='kubens'
+alias kx='kubectx'
+alias klogs='kubectl logs --timestamps=true'
+alias cert-manager='kubectl cert-manager'
+
+function kcontainers () {
+  local ANS=""
+  case $1 in
+    -A|--all-namespaces) ANS="--all-namespaces" ;;
+  esac
+  kubectl get pods ${ANS} -o jsonpath="{.items[*].spec['initContainers', 'containers'][*].image}" |\
+    tr -s '[[:space:]]' '\n' |\
+    sort |\
+    uniq -c
+}
+
+function kresources () {
+  # Get resource requests and limits for all containers in all pods in a namespace
+  # Usage: kresources [<project_name>]
+  # Props to steffenlongva/zsh-stuff
+  local project_name=$1
+  test -n "${project_name}" && local namespace="--namespace=${project_name}" || local namespace=""
+  which oc >/dev/null && local cmd=oc || local cmd=kubectl
+  ${cmd} get pods $namespace -o custom-columns="STATE:.status.phase,NAME:.metadata.name,CPU_REQ:.spec.containers[*].resources.requests.cpu,CPU_LIMIT:.spec.containers[*].resources.limits.cpu,MEM_REQ:.spec.containers[*].resources.requests.memory,MEM_LIMIT:.spec.containers[*].resources.limits.memory"
+}
+
+function make-admin-oc () {
+  # Add user as cluster-admin.
+  # Requires that the user is allowed in the cluster to do this.
+  oc adm policy add-cluster-role-to-user cluster-admin $(whoami) --as=system:admin
+}
+
+function get-api-resources () {
+  # Get all kubernetes resources.
+  # Align result, also for resources without a hostname (for easy sorting)
+  oc api-resources $1 | awk '
+    NF < 4 # Will have to handle at some point if relevant
+    NF==4 {
+      printf("%-38s%-87s%-50s%-13s%s\n", $1, "N/A", $2, $3, $4)
+    }
+    # print is the default
+    NF > 4
+    '
+}
+
+function get-func-name () {
+    # Print the name of the function calling me
+    # https://stackoverflow.com/a/56305385/2045924
+    if [[ -n $BASH_VERSION ]]
+    then
+        printf "%s\n" "${FUNCNAME[1]}"
+    else  # zsh
+        # Use offset:length as array indexing may start at 1 or 0
+        printf "%s\n" "${funcstack[@]:1:1}"
+    fi
+}
+
+function get-oc-token-keys () {
+  jq -r '.tokens | keys[]' ~/.my-session.json
+}
+
+function get-oc-token () {
+  if [ $# -ne 1 ]
+  then
+    echo "usage: $(get-func-name) <kubernetes-context>"
+    return
+  fi
+  local RET=$(jq -r ".tokens.\"${1}\"" ~/.my-session.json)
+  if [ "$RET" != "null" ]
+  then
+    echo "$RET"
+  else
+    echo "ERROR getting token for context ${1}"
+    return 1
+  fi
+}
+
+function do-my-login () {
+  case $1 in
+    '-h|--help') echo "usage: $(get-func-name) <my-config>" ; return 0 ;;
+  esac
+  local CONFIG=${1:-aup}
+  my login ${CONFIG} --renew-tokens
+}
+
+function do-login-all-oc () {
+  for OC_CONTEXT in $(get-oc-token-keys)
+  do
+    do-login-oc-${OC_CONTEXT}
+  done
+}
+
+function get-k8s-context () {
+    if [ $# -ne 1 ]
+    then
+        echo "usage: $(get-func-name) <kubernetes-context>"
+        return
+    fi
+    local contexts=$(kubectx)
+    local OPENSHIFT_CONTEXT_DOMAIN=$(cat $HOME/.openshift_domain | sed 's/\./-/g')
+    local OPENSHIFT_USER=$(cat $HOME/.openshift_user)
+    for context in $contexts
+    do
+        echo "$context" | grep -E "^[^/]+/api-${1}-${OPENSHIFT_CONTEXT_DOMAIN}:6443/${OPENSHIFT_USER}$"
+    done
+}
+
+if [ -f $HOME/.openshift_domain ]
+then
+    OPENSHIFT_DOMAIN=$(cat $HOME/.openshift_domain)
+    OPENSHIFT_CONTEXT_DOMAIN=$(cat $HOME/.openshift_domain | sed 's/\./-/g')
+    if [ -f $HOME/.openshift_user ]
+    then
+        OPENSHIFT_USER=$(cat $HOME/.openshift_user)
+        for OC_CONTEXT in $(get-oc-token-keys)
+        do
+            unalias oc-${OC_CONTEXT} 2>/dev/null
+            # Create function to run commands for each cluster
+            source /dev/stdin <<EOF
+            function oc-${OC_CONTEXT} () {
+              oc \$@ --context=$(get-k8s-context ${OC_CONTEXT} | head -1)
+            }
+EOF
+            # Add completions to the function
+            if type compdef >/dev/null 2>&1
+            then
+                # zsh
+                # FIXME... this is not working as documented at the moment
+                compdef oc-${OC_CONTEXT}=oc
+            elif ( type compopt && type complete ) >/dev/null 2>&1
+            then
+                # bash
+                if [[ $(type -t compopt) = "builtin" ]]
+                then
+                    complete -o default -F __start_oc oc-${i}
+                else
+                    complete -o default -o nospace -F __start_oc oc-${i}
+                fi
+            else
+                :  # Complete functions not found
+            fi
+            # Create function for logging into the cluster
+            source /dev/stdin <<EOF
+            function do-login-oc-${OC_CONTEXT} () {
+              oc login --server https://api.${OC_CONTEXT}.${OPENSHIFT_DOMAIN}:6443 --token=\$(get-oc-token ${OC_CONTEXT})
+            }
+EOF
+        done
+        # zsh - ensure new completions are loaded
+        # PS! zsh will add completion to _aliases_, such as k, kx, etc.
+        if ( type autoload && type compinit ) >/dev/null 2>&1
+        then
+            autoload -U compinit
+            compinit
+        elif ( type compopt && type complete ) >/dev/null 2>&1
+        then
+            # Setup bash completion also for my aliases
+            if [[ $(type -t compopt) = "builtin" ]]; then
+                complete -o default -F __start_kubectl k
+            else
+                complete -o default -o nospace -F __start_kubectl k
+            fi
+            complete -F _kube_contexts kx kctx
+            complete -F _kube_namespaces ke kns
+        else
+            :  # Complete functions not found
+        fi
+    else
+        echo "Add your username to $HOME/.openshift_user to get oc-<env> funtions, e.g. 'username' or 'user.name@organization.com'"
+    fi
+else
+    echo "Add the _domain_ part to $HOME/.openshift_domain to get oc-<env> funtions, e.g. 'hostname.com'"
+fi
