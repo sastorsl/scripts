@@ -16,13 +16,18 @@ alias gitbranchjiratask="git rev-parse --abbrev-ref HEAD | grep -E -o '[A-Z]+-[0
 #
 # Setup function to loop the git directory and create aliases.
 #
-function gitaliases () {
+function _get_gitaliases () {
+    local ALIASFILE=$1
     local PREFIX=$HOME/git/
     local NR=1
     local GITREPO=""
+    local MAXDEPTH=8  # Max number of sub directories to travel
     # unset previous git aliases
     local ALIASES=$(alias | awk 'BEGIN { FS="=" } /^(alias )?gitrepo/ { sub(/^alias /,"") ; print $1 }')
     [ -n "${ALIASES}" ] && unalias $(echo ${ALIASES})
+
+    # Initialize the gitaliases file
+    rm -f ${ALIASFILE:?}
 
     # Find git repos and set alias
     while read GITREPO
@@ -30,8 +35,41 @@ function gitaliases () {
         local GITPATH=${GITREPO%/.git}
         local ALIASFULLNAME=$(echo ${GITPATH} | sed -e "s#^${PREFIX}##" -e 's#/#-#g' -e 's/^/gitrepo-/' -e 's/--*/-/g').git
         alias ${ALIASFULLNAME}="cd ${GITPATH}"
-    done <<<"$(find ${PREFIX} -type d -name .git | LANG=C sort)"
+        echo "alias ${ALIASFULLNAME}=\"cd ${GITPATH}\"" >> ${ALIASFILE:?}
+    done <<<"$(find ${PREFIX} -maxdepth ${MAXDEPTH:?} -type d -name .git | LANG=C sort)"
 }
+
+function gitaliases () {
+    local OPTION="$1"
+    local DO_FORCE="no"
+    local ALIASFILE=$HOME/.gitaliases
+    local MAXAGE_MINS="-60"
+
+    case $OPTION in
+      "") : ;;
+      --force) local DO_FORCE="yes" ;;
+      *) echo "Invalid option, proceeding anyways..." ;;
+    esac
+
+    if [ ${DO_FORCE:?} = "no" ]
+    then
+      # Will source an existing gitaliases, if ...
+      # ...the file exists and is not empty
+      if [ -f ${ALIASFILE:?} -a -s ${ALIASFILE:?} ]
+      then
+        # ...and that it is not too old
+        if [ -n "$(find ${ALIASFILE:?} -type f -mmin ${MAXAGE_MINS:?})" ]
+        then
+          #echo "${ALIASFILE:?} exists and is younger than ${MAXAGE_MINS:?}. Sourcing..."
+          source ${ALIASFILE:?}
+          return 0
+        fi
+      fi
+    fi
+    # Passing all tests, we finally re-run the gitaliases
+    _get_gitaliases ${ALIASFILE:?}
+}
+
 # Setup aliases
 gitaliases
 
@@ -39,6 +77,22 @@ if which git-gh-clone >/dev/null 2>&1
 then
     function gh-clone () {
         local r=$(git gh-clone $1)
+        test -n "$r" && cd $r
+    }
+fi
+
+if which git-gl-clone >/dev/null 2>&1
+then
+    function gl-clone () {
+        local r=$(git gl-clone $1 | tail -1)
+        test -n "$r" && cd $r
+    }
+fi
+
+if which git-ske-clone >/dev/null 2>&1
+then
+    function ske-clone () {
+        local r=$(git ske-clone $1)
         test -n "$r" && cd $r
     }
 fi
