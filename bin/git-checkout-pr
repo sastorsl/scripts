@@ -1,0 +1,18 @@
+#!/bin/sh
+# https://gist.github.com/mandrizzle/0e16fe62e6132bb74f456c53fa207c8c
+
+# Usage: `git checkout-pr <pull-request-id>`
+#
+# Make this file executable and place in a $PATH directory
+# The name of the file is important. It has to be named `git-checkout-pr` for the usage to be `git checkout-pr`
+
+# Every pull request on stash has 2 branches. One is called `merge` which is a branch that is merged with its destination.
+# The other is `from` which is the unmodified revision that was pushed. This script checks out the merge branch.
+# If you want to checkout the pr that is not pre-merged with it's destination, change all occurances of `merge` to `from`
+
+if ! git config -l | grep -q "remote.origin.fetch=+refs/pull-requests/\*:refs/remotes/origin/pr/\*"; then
+  git config --add remote.origin.fetch +refs/pull-requests/*:refs/remotes/origin/pr/*
+fi
+
+git fetch --prune
+git checkout pr/$1/from
