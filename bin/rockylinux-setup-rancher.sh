@@ -34,10 +34,10 @@ then
 fi
 
 MODULE_FILE=/etc/modules-load.d/rancher.conf 
-MODULES="ip_tables
-ip_conntrack
+MODULES="nf_tables
+nf_conntrack
 iptable_filter
-ipt_state"
+xt_state"
 
 # Setup required kernel modules
 if test ! -f ${MODULE_FILE:?} || ! diff ${MODULE_FILE:?} <(echo "${MODULES:?}")
