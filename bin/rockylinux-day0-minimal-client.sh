@@ -3,12 +3,11 @@
 # Client tools and stuff to install after a Rocky Linux 9 minimal installation
 
 # Basic tools
-dnf -y install \
+sudo dnf -y install \
     bash-completion \
     bind-utils \
     colordiff \
     epel-release \
-    fetchmail \
     git \
     logrotate \
     lsof \
