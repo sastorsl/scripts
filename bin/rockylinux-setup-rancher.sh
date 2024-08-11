@@ -49,7 +49,7 @@ else
 fi
 
 # Ensure required modules are loaded
-if [ -n "$(while read i ; do grep -qw "^${i}\b" <(lsmod) || echo MISSING ; done < ${MODULE_FILE:?})" ]
+if [ -n "$(while read i ; do modinfo ${i} >/dev/null 2>&1 || echo MISSING ; done < ${MODULE_FILE:?})" ]
 then
     echo "NB! A reboot of the server is required to load required kernel modules. (see ${MODULE_FILE:?})"
     exit 1
@@ -86,6 +86,6 @@ docker run \
 
 for PORT in 8080 6443
 do
-    firewall-cmd --permanent --zone=home --add-port=${PORT:?}
-    firewall-cmd --zone=home --add-port=${PORT:?}
+    sudo firewall-cmd --permanent --zone=home --add-port=${PORT:?}/tcp
+    sudo firewall-cmd --zone=home --add-port=${PORT:?}/tcp
 done
